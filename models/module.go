@@ -29,7 +29,7 @@ func init() {
 	)
 }
 
-type findWebcamsWebcamDiscovery struct {
+type findCams struct {
 	resource.Named
 	resource.TriviallyCloseable
 	resource.AlwaysRebuild
@@ -38,7 +38,7 @@ type findWebcamsWebcamDiscovery struct {
 }
 
 func newFindWebcamsWebcamDiscovery(_ context.Context, _ resource.Dependencies, conf resource.Config, logger logging.Logger) (discovery.Service, error) {
-	s := &findWebcamsWebcamDiscovery{
+	s := &findCams{
 		Named:  conf.ResourceName().AsNamed(),
 		logger: logger,
 	}
@@ -46,7 +46,7 @@ func newFindWebcamsWebcamDiscovery(_ context.Context, _ resource.Dependencies, c
 }
 
 // DiscoverResources implements discovery.Service.
-func (s *findWebcamsWebcamDiscovery) DiscoverResources(ctx context.Context, extra map[string]any) ([]resource.Config, error) {
+func (s *findCams) DiscoverResources(ctx context.Context, extra map[string]any) ([]resource.Config, error) {
 	return findCameras(ctx, getVideoDrivers, s.logger)
 }
 
