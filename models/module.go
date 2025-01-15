@@ -2,17 +2,18 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
 
 	"github.com/pion/mediadevices/pkg/driver"
+	mdcam "github.com/pion/mediadevices/pkg/driver/camera"
 	"github.com/pion/mediadevices/pkg/prop"
 	"go.viam.com/rdk/components/camera"
 	"go.viam.com/rdk/components/camera/videosource"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
 	"go.viam.com/rdk/services/discovery"
-	"go.viam.com/rdk/utils"
 )
 
 var (
@@ -22,14 +23,10 @@ var (
 
 func init() {
 	resource.RegisterService(discovery.API, WebcamDiscovery,
-		resource.Registration[discovery.Service, *Config]{
+		resource.Registration[discovery.Service, resource.NoNativeConfig]{
 			Constructor: newFindWebcamsWebcamDiscovery,
 		},
 	)
-}
-
-type Config struct {
-	resource.TriviallyValidateConfig
 }
 
 type findWebcamsWebcamDiscovery struct {
@@ -38,19 +35,12 @@ type findWebcamsWebcamDiscovery struct {
 	resource.AlwaysRebuild
 
 	logger logging.Logger
-	cfg    *Config
 }
 
-func newFindWebcamsWebcamDiscovery(ctx context.Context, deps resource.Dependencies, rawConf resource.Config, logger logging.Logger) (discovery.Service, error) {
-	conf, err := resource.NativeConfig[*Config](rawConf)
-	if err != nil {
-		return nil, err
-	}
-
+func newFindWebcamsWebcamDiscovery(_ context.Context, _ resource.Dependencies, conf resource.Config, logger logging.Logger) (discovery.Service, error) {
 	s := &findWebcamsWebcamDiscovery{
-		Named:  rawConf.ResourceName().AsNamed(),
+		Named:  conf.ResourceName().AsNamed(),
 		logger: logger,
-		cfg:    conf,
 	}
 	return s, nil
 }
@@ -85,7 +75,7 @@ func getProperties(d driver.Driver) (_ []prop.Media, err error) {
 
 // Discover webcam attributes.
 func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger logging.Logger) ([]resource.Config, error) {
-	driver.Initialize()
+	mdcam.Initialize()
 	var webcams []resource.Config
 	drivers := getDrivers()
 	for _, d := range drivers {
@@ -105,11 +95,11 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 			continue
 		}
 
-		labelParts := strings.Split(driverInfo.Label, driver.LabelSeparator)
+		labelParts := strings.Split(driverInfo.Label, mdcam.LabelSeparator)
 		label := labelParts[0]
 
 		name, id := func() (string, string) {
-			nameParts := strings.Split(driverInfo.Name, driver.LabelSeparator)
+			nameParts := strings.Split(driverInfo.Name, mdcam.LabelSeparator)
 			if len(nameParts) > 1 {
 				return nameParts[0], nameParts[1]
 			}
@@ -118,6 +108,7 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 		}()
 
 		for _, prop := range props {
+			var result map[string]interface{}
 			attributes := videosource.WebcamConfig{
 				Path:      id,
 				Format:    string(prop.Video.FrameFormat),
@@ -126,11 +117,23 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 				FrameRate: prop.Video.FrameRate,
 			}
 
+			// marshal to bytes
+			jsonBytes, err := json.Marshal(attributes)
+			if err != nil {
+				return nil, err
+			}
+
+			// convert to map to be used as attributes in resource.Config
+			err = json.Unmarshal(jsonBytes, &result)
+			if err != nil {
+				return nil, err
+			}
+
 			wc := resource.Config{
 				Name:                name,
 				API:                 camera.API,
 				Model:               videosource.ModelWebcam,
-				Attributes:          utils.AttributeMap{},
+				Attributes:          result,
 				ConvertedAttributes: attributes,
 			}
 
