@@ -1,0 +1,12 @@
+{
+  "module_name": "find-webcams",
+  "namespace": "rand",
+  "language": "go",
+  "resource_type": "service",
+  "resource_subtype": "generic",
+  "model_name": "webcam-discovery",
+  "enable_cloud_build": true,
+  "initialize_git": false,
+  "generator_version": "0.1.0",
+  "generated_on": "2025-01-15T00:28:45.603787Z"
+}

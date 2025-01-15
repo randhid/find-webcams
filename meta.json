@@ -1,0 +1,24 @@
+{
+  "$schema": "https://dl.viam.dev/module.schema.json",
+  "module_id": "rand:find-webcams",
+  "visibility": "public",
+  "url": "https://github.com/randhid/find-webcams",
+  "description": "Modular discovery service: webcam-discovery",
+  "models": [
+    {
+      "api": "rdk:service:discovery",
+      "model": "rand:find-webcams:webcam-discovery"
+    }
+  ],
+  "entrypoint": "bin/find-webcams",
+  "first_run": "",
+  "build": {
+    "build": "make module.tar.gz",
+    "setup": "make setup",
+    "path": "bin/module.tar.gz",
+    "arch": [
+      "linux/amd64",
+      "linux/arm64"
+    ]
+  }
+}
