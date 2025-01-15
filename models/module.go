@@ -98,7 +98,9 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 		labelParts := strings.Split(driverInfo.Label, mdcam.LabelSeparator)
 		label := labelParts[0]
 
-		name, id := func() (string, string) {
+		// TODO: test with actual webcams to sanitize name so we can
+		// actually confiure the webcams
+		_, id := func() (string, string) {
 			nameParts := strings.Split(driverInfo.Name, mdcam.LabelSeparator)
 			if len(nameParts) > 1 {
 				return nameParts[0], nameParts[1]
@@ -130,7 +132,7 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 			}
 
 			wc := resource.Config{
-				Name:                name,
+				Name:                id,
 				API:                 camera.API,
 				Model:               videosource.ModelWebcam,
 				Attributes:          result,
