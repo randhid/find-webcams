@@ -12,7 +12,7 @@ The [`webcam-discovery`](models/module.go) discovery service automatically:
 ## Attributes
 No models in this module have any attributes.
 
-## Useage
+## Usage
 
 Add this module to your Viam robot's configuration:
 
@@ -36,5 +36,8 @@ Add this module to your Viam robot's configuration:
     }
   ]
 }
+``` 
+
+Open the **TEST** section on the service's configuration panel to see discovered webcams.
 
 
