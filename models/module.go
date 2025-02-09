@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/pion/mediadevices/pkg/driver"
@@ -17,8 +16,7 @@ import (
 )
 
 var (
-	WebcamDiscovery  = resource.NewModel("rand", "find-webcams", "webcam-discovery")
-	errUnimplemented = errors.New("unimplemented")
+	WebcamDiscovery = resource.NewModel("rand", "find-webcams", "webcam-discovery")
 )
 
 func init() {
@@ -75,8 +73,8 @@ func getProperties(d driver.Driver) (_ []prop.Media, err error) {
 
 // Discover webcam attributes.
 func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger logging.Logger) ([]resource.Config, error) {
-	mdcam.Initialize()
-	var webcams []resource.Config
+	webcams := []resource.Config{}
+
 	drivers := getDrivers()
 	for _, d := range drivers {
 		driverInfo := d.Info()
@@ -96,51 +94,49 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 		}
 
 		labelParts := strings.Split(driverInfo.Label, mdcam.LabelSeparator)
+
+		// for mac, the device path is the first part of the label
 		label := labelParts[0]
-
-		// TODO: test with actual webcams to sanitize name so we can
-		// actually confiure the webcams
-		_, id := func() (string, string) {
-			nameParts := strings.Split(driverInfo.Name, mdcam.LabelSeparator)
-			if len(nameParts) > 1 {
-				return nameParts[0], nameParts[1]
-			}
-			// fallback to the label if the name does not have an any additional parts to use.
-			return nameParts[0], label
-		}()
-
-		for _, prop := range props {
-			var result map[string]interface{}
-			attributes := videosource.WebcamConfig{
-				Path:      id,
-				Format:    string(prop.Video.FrameFormat),
-				Width:     prop.Video.Width,
-				Height:    prop.Video.Height,
-				FrameRate: prop.Video.FrameRate,
-			}
-
-			// marshal to bytes
-			jsonBytes, err := json.Marshal(attributes)
-			if err != nil {
-				return nil, err
-			}
-
-			// convert to map to be used as attributes in resource.Config
-			err = json.Unmarshal(jsonBytes, &result)
-			if err != nil {
-				return nil, err
-			}
-
-			wc := resource.Config{
-				Name:                id,
-				API:                 camera.API,
-				Model:               videosource.ModelWebcam,
-				Attributes:          result,
-				ConvertedAttributes: attributes,
-			}
-
-			webcams = append(webcams, wc)
+		if len(labelParts) > 1 {
+			// for linux, the device path that works is the second part of the label
+			// unknown why
+			label = labelParts[1]
 		}
+
+		logger.Infof("found camera drivers with info  %#v", driverInfo)
+
+		var result map[string]interface{}
+		attributes := videosource.WebcamConfig{
+			Path: label,
+			// TODO: find a way to return good properties without returning all combinations
+			// Format: string(prop.Video.FrameFormat),
+			// Width:     prop.Video.Width,
+			// Height:    prop.Video.Height,
+			// FrameRate: prop.Video.FrameRate,
+		}
+
+		// marshal to bytes
+		jsonBytes, err := json.Marshal(attributes)
+		if err != nil {
+			return nil, err
+		}
+
+		// convert to map to be used as attributes in resource.Config
+		err = json.Unmarshal(jsonBytes, &result)
+		if err != nil {
+			return nil, err
+		}
+
+		wc := resource.Config{
+			Name:                driverInfo.Name,
+			API:                 camera.API,
+			Model:               videosource.ModelWebcam,
+			Attributes:          result,
+			ConvertedAttributes: attributes,
+		}
+
+		webcams = append(webcams, wc)
 	}
+
 	return webcams, nil
 }
