@@ -7,7 +7,9 @@
   "models": [
     {
       "api": "rdk:service:discovery",
-      "model": "rand:find-webcams:webcam-discovery"
+      "model": "rand:find-webcams:webcam-discovery",
+      "markdown_link" : "README.md#attributes",
+      "short_description" : "find webcam video device paths connected to your viam-server to configure webcams"
     }
   ],
   "entrypoint": "bin/find-webcams",
