@@ -73,6 +73,14 @@ func getProperties(d driver.Driver) (_ []prop.Media, err error) {
 
 // Discover webcam attributes.
 func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger logging.Logger) ([]resource.Config, error) {
+	// Clear all registered camera devices before calling Initialize to prevent duplicates.
+	// If first initalize call, this will be a noop.
+	manager := driver.GetManager()
+	for _, d := range manager.Query(driver.FilterVideoRecorder()) {
+		manager.Delete(d.ID())
+	}
+	mdcam.Initialize()
+
 	webcams := []resource.Config{}
 
 	drivers := getDrivers()
