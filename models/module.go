@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"regexp"
 	"strings"
 
 	"github.com/pion/mediadevices/pkg/driver"
@@ -111,7 +112,7 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 			label = labelParts[1]
 		}
 
-		logger.Infof("found camera drivers with info  %#v", driverInfo)
+		logger.Debugf("found camera drivers with info  %#v", driverInfo)
 
 		var result map[string]interface{}
 		attributes := videosource.WebcamConfig{
@@ -135,8 +136,11 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 			return nil, err
 		}
 
+		reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
+		name := reg.ReplaceAllString(driverInfo.Name, "")
+
 		wc := resource.Config{
-			Name:                driverInfo.Name,
+			Name:                name,
 			API:                 camera.API,
 			Model:               videosource.ModelWebcam,
 			Attributes:          result,

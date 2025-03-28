@@ -22,7 +22,7 @@ setup:
 
 
 clean:
-	rm -rf $(BIN_OUTPUT_PATH)/find-webcams $(BIN_OUTPUT_PATH)/module.tar.gz find-webcamsgit
+	rm -rf $(BIN_OUTPUT_PATH)/find-webcams $(BIN_OUTPUT_PATH)/module.tar.gz find-webcams
 
 format:
 	gofmt -w -s .
