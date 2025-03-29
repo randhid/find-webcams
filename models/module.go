@@ -72,6 +72,12 @@ func getProperties(d driver.Driver) (_ []prop.Media, err error) {
 	return d.Properties(), err
 }
 
+func fixName(name string) string {
+	// remove all non-alphanumeric characters
+	reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
+	return reg.ReplaceAllString(name, "")
+}
+
 // Discover webcam attributes.
 func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger logging.Logger) ([]resource.Config, error) {
 	// Clear all registered camera devices before calling Initialize to prevent duplicates.
@@ -131,13 +137,11 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 		}
 
 		// convert to map to be used as attributes in resource.Config
-		err = json.Unmarshal(jsonBytes, &result)
-		if err != nil {
+		if err = json.Unmarshal(jsonBytes, &result); err != nil {
 			return nil, err
 		}
 
-		reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
-		name := reg.ReplaceAllString(driverInfo.Name, "")
+		name := fixName(driverInfo.Name)
 
 		wc := resource.Config{
 			Name:                name,
