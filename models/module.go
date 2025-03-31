@@ -73,6 +73,8 @@ func getProperties(d driver.Driver) (_ []prop.Media, err error) {
 }
 
 func fixName(name string) string {
+	// First replace semicolons with hyphens
+	name = strings.ReplaceAll(name, ";", "-")
 	// remove all non-alphanumeric characters
 	reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
 	return reg.ReplaceAllString(name, "")
