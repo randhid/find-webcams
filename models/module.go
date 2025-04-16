@@ -96,6 +96,12 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 	for _, d := range drivers {
 		driverInfo := d.Info()
 
+		// Skip Broadcom/BCM devices (typically Raspberry Pi camera-related devices)
+		if strings.HasPrefix(driverInfo.Name, "bcm") {
+			logger.CDebugw(ctx, "skipping Broadcom/BCM device", "driver", driverInfo.Label)
+			continue
+		}
+
 		props, err := getProperties(d)
 		if len(props) == 0 {
 			logger.CDebugw(ctx, "no properties detected for driver, skipping discovery...", "driver", driverInfo.Label)
