@@ -13,7 +13,8 @@ import (
 	"go.viam.com/rdk/components/camera/videosource"
 )
 
-const someName = "USB223;44 Somecam^" 
+const someName = "USB223;44 Somecam^"
+
 // fakeDriver is a driver has a label and media properties.
 type fakeDriver struct {
 	label string
@@ -23,7 +24,7 @@ type fakeDriver struct {
 func (d *fakeDriver) Open() error              { return nil }
 func (d *fakeDriver) Properties() []prop.Media { return d.props }
 func (d *fakeDriver) ID() string               { return d.label }
-func (d *fakeDriver) Info() driver.Info        { return driver.Info{Label: d.label, Name:  someName} }
+func (d *fakeDriver) Info() driver.Info        { return driver.Info{Label: d.label, Name: someName} }
 func (d *fakeDriver) Status() driver.State     { return "some state" }
 func (d *fakeDriver) Close() error             { return nil }
 

@@ -128,14 +128,24 @@ func findCameras(ctx context.Context, getDrivers func() []driver.Driver, logger 
 
 		logger.Debugf("found camera drivers with info  %#v", driverInfo)
 
+		// Find the property with maximum resolution
+		maxResolution := 0
+		maxResProp := props[0]
+		for _, p := range props {
+			resolution := p.Video.Width * p.Video.Height
+			if resolution > maxResolution {
+				maxResolution = resolution
+				maxResProp = p
+			}
+		}
+
 		var result map[string]interface{}
 		attributes := videosource.WebcamConfig{
-			Path: label,
-			// TODO: find a way to return good properties without returning all combinations
-			// Format: string(prop.Video.FrameFormat),
-			// Width:     prop.Video.Width,
-			// Height:    prop.Video.Height,
-			// FrameRate: prop.Video.FrameRate,
+			Path:      label,
+			Format:    string(maxResProp.Video.FrameFormat),
+			Width:     maxResProp.Video.Width,
+			Height:    maxResProp.Video.Height,
+			FrameRate: maxResProp.Video.FrameRate,
 		}
 
 		// marshal to bytes
